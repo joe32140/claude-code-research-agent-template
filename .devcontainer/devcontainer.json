@@ -1,0 +1,45 @@
+{
+  "name": "Claude Code Research Agent (GPU)",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  "containerUser": "node",
+  "remoteUser": "node",
+
+  "mounts": [
+    "source=claude-research-config,target=/home/node/.claude,type=volume",
+    "source=claude-research-history,target=/commandhistory,type=volume",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,readonly"
+  ],
+
+  "containerEnv": {
+    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
+    "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
+    "NVIDIA_VISIBLE_DEVICES": "all"
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+
+  "postCreateCommand": "nvidia-smi || echo 'No GPU detected'; claude --version && echo 'Claude Code ready!'",
+
+  "runArgs": [
+    "--network=host",
+    "--gpus=all"
+  ]
+}

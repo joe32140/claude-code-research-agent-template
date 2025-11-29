@@ -4,7 +4,47 @@
 
 This is a general-purpose template for long-running research agents using Claude Code. It implements patterns from [Anthropic's engineering guide on effective harnesses](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) to enable multi-session research workflows with persistent state and incremental progress.
 
-## Environment Management
+## Docker Environment (Recommended)
+
+This template includes a VS Code Dev Container configuration for running Claude Code safely in an isolated Docker environment.
+
+### Container Capabilities
+
+When running inside the container, you have:
+- **GPU access** - CUDA 12.4 pre-installed, verify with `nvidia-smi`
+- **Full sudo access** - Install any packages with `sudo apt-get install`
+- **Full internet access** - No network restrictions
+- **Full filesystem permissions** - Read/write anywhere in the container
+- **Persistent Claude config** - Settings saved across container restarts
+- **Pre-installed tools**: Node.js, Python, uv, git, GitHub CLI, CUDA toolkit
+
+### Installing System Dependencies
+
+```bash
+sudo apt-get update && sudo apt-get install -y <package>
+```
+
+### Installing PyTorch with GPU Support
+
+```bash
+uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+```
+
+Verify GPU access in Python:
+```python
+import torch
+print(torch.cuda.is_available())  # Should be True
+print(torch.cuda.get_device_name(0))  # Shows your GPU
+```
+
+### Important Notes
+
+- The workspace at `/home/node/workspace` is mounted from the host
+- Changes to workspace files persist on the host
+- Changes outside workspace (e.g., `/tmp`, system files) are lost on container restart
+- Use the workspace for all project files
+
+## Python Environment Management
 
 This project uses `uv` for Python environment management.
 
@@ -12,8 +52,7 @@ This project uses `uv` for Python environment management.
 
 ```bash
 uv venv
-source .venv/bin/activate  # Linux/macOS
-# or: .venv\Scripts\activate  # Windows
+source .venv/bin/activate
 uv pip install -r requirements.txt
 ```
 
@@ -127,6 +166,9 @@ Next steps: [what might unblock this]
 
 ```
 project-root/
+├── .devcontainer/         # VS Code Dev Container config
+│   ├── devcontainer.json  # Container settings
+│   └── Dockerfile         # Container image definition
 ├── CLAUDE.md              # This file - agent instructions
 ├── progress.txt           # Session-to-session progress notes
 ├── tasks.json             # Structured task tracking
