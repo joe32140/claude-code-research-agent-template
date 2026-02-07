@@ -16,7 +16,9 @@
   "containerEnv": {
     "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
     "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
-    "NVIDIA_VISIBLE_DEVICES": "all"
+    "NVIDIA_VISIBLE_DEVICES": "all",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_DISABLE_AUTO_MEMORY": "0"
   },
 
   "features": {

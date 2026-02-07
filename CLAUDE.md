@@ -1,183 +1,77 @@
-# Research Agent Template Instructions
+# Research Agent Template
 
-## Overview
+General-purpose template for long-running research agents using Claude Code. See @research-plan.md for project-specific goals.
 
-This is a general-purpose template for long-running research agents using Claude Code. It implements patterns from [Anthropic's engineering guide on effective harnesses](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) to enable multi-session research workflows with persistent state and incremental progress.
+## Task Management
 
-## Docker Environment (Recommended)
+Use Claude Code's native task system — do NOT create manual `tasks.json` or `features.json` files.
 
-This template includes a VS Code Dev Container configuration for running Claude Code safely in an isolated Docker environment.
+- **`TaskCreate`** to define research tasks with clear descriptions and success criteria
+- **`TaskUpdate`** to mark tasks in_progress, completed, or blocked
+- **`TaskList`** to check progress and find next work
+- Focus on ONE task per session; complete or block it before moving on
 
-### Container Capabilities
+## Progress & Memory
 
-When running inside the container, you have:
-- **GPU access** - CUDA 12.4 pre-installed, verify with `nvidia-smi`
-- **Full sudo access** - Install any packages with `sudo apt-get install`
-- **Full internet access** - No network restrictions
-- **Full filesystem permissions** - Read/write anywhere in the container
-- **Persistent Claude config** - Settings saved across container restarts
-- **Pre-installed tools**: Node.js, Python, uv, git, GitHub CLI, CUDA toolkit
+Claude Code's auto memory persists context across sessions automatically. Use `progress.txt` only as an optional experiment log for detailed results — not as a primary state tracker.
 
-### Installing System Dependencies
-
-```bash
-sudo apt-get update && sudo apt-get install -y <package>
+After significant experiments, log results to `progress.txt` for human-readable reference:
+```
+## 2025-01-15 - Experiment: Learning rate sweep
+Hypothesis: LR 3e-4 will outperform 1e-3
+Result: Confirmed, 3e-4 achieved 92.1% vs 89.3%
 ```
 
-### Installing PyTorch with GPU Support
+## Agent Teams
+
+For research involving parallel workstreams, use Claude Code's native agent teams:
+
+- **When to use**: Multiple independent experiments, literature review + implementation in parallel, data processing while writing analysis
+- **How**: `TeamCreate` → `TaskCreate` for each workstream → spawn teammates with `Task` tool
+- Available custom subagents in `.claude/agents/`:
+  - `literature-reviewer` — Web research, paper analysis (read-only)
+  - `experiment-runner` — Run experiments in isolated context (keeps verbose output out of main context)
+  - `data-analyst` — Data exploration, analysis, visualization
+
+## Docker Environment
+
+This template includes a Dev Container for running Claude Code in isolation with GPU support.
+
+- **GPU**: CUDA 12.4, verify with `nvidia-smi`
+- **Sudo**: Full access inside container
+- **Network**: Unrestricted internet
+- **Tools**: Node.js, Python, uv, git, GitHub CLI, CUDA toolkit
+- **Workspace**: `/home/node/workspace` (mounted from host, persists)
+
+### PyTorch with GPU
 
 ```bash
 uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 ```
 
-Verify GPU access in Python:
-```python
-import torch
-print(torch.cuda.is_available())  # Should be True
-print(torch.cuda.get_device_name(0))  # Shows your GPU
-```
-
-### Important Notes
-
-- The workspace at `/home/node/workspace` is mounted from the host
-- Changes to workspace files persist on the host
-- Changes outside workspace (e.g., `/tmp`, system files) are lost on container restart
-- Use the workspace for all project files
-
-## Python Environment Management
-
-This project uses `uv` for Python environment management.
-
-### Initial Setup
+## Python Environment
 
 ```bash
-uv venv
-source .venv/bin/activate
-uv pip install -r requirements.txt
-```
-
-### Adding Dependencies
-
-```bash
-uv add <package>           # Add and install a package
-uv pip compile requirements.in -o requirements.txt  # If using requirements.in
-```
-
-### Running Scripts
-
-```bash
-uv run python src/main.py  # Run within uv-managed environment
-```
-
-## Session Startup Protocol
-
-Every session must begin with these steps:
-
-1. Run `pwd` to confirm working directory
-2. Run `git log --oneline -10` to review recent commits and current state
-3. Read `progress.txt` for documented decisions and completed work
-4. Read `tasks.json` to identify the highest-priority incomplete task
-5. Run `uv run python -c "print('Environment OK')"` to verify environment
-
-## Progress Tracking
-
-### Required Files
-
-- **progress.txt**: Document all decisions, experiments, results, and blockers. Update after every significant action.
-- **tasks.json**: Structured task list with status tracking. Use JSON format (more robust than Markdown for automated parsing).
-- **features.json** (optional): For projects with discrete features, track specifications and completion status.
-
-### Task Status Values
-
-```json
-{
-  "id": "task-001",
-  "description": "Implement data preprocessing pipeline",
-  "status": "pending|in_progress|completed|blocked",
-  "blockedReason": "Optional: why blocked",
-  "completedAt": "ISO timestamp when done"
-}
-```
-
-### Git Commit Conventions
-
-- Commit after every meaningful change
-- Use descriptive prefixes: `data:`, `exp:`, `eval:`, `docs:`, `infra:`, `fix:`
-- Example: `data: implement trajectory extraction from dataset`
-
-## Research Workflow
-
-### Single-Task Focus
-
-Each session should focus on ONE task:
-- Do not context-switch between tasks
-- Complete or explicitly block the current task before moving on
-- Prefer tasks that produce measurable, verifiable results
-
-### Task Selection Priority
-
-1. Unblock any blocked tasks first
-2. Complete in-progress tasks before starting new ones
-3. Follow phase order if applicable (e.g., Data → Training → Evaluation)
-4. Prioritize tasks with clear success criteria
-
-### Incremental Progress Over Ambition
-
-- Avoid attempting complete solutions in a single session
-- Aim for clean, committable states at session end
-- Leave clear handoff notes for the next session
-
-## Experiment Management
-
-### Before Running an Experiment
-
-1. Document hypothesis in progress.txt
-2. Verify data is correctly loaded (print samples)
-3. Confirm resource requirements are met
-4. Set up logging and output directories
-
-### After Running an Experiment
-
-1. Record all metrics in progress.txt
-2. Save outputs with descriptive names
-3. Commit results to git
-4. Update tasks.json status
-5. Document unexpected findings or failures
-
-## Error Handling
-
-### When Encountering Errors
-
-1. Document the full error in progress.txt
-2. Attempt at least two different solutions
-3. If blocked after reasonable debugging, mark task as blocked with detailed notes
-4. Move to next highest-priority task
-
-### Blocked Task Format
-
-```
-BLOCKED: [task description]
-Reason: [what failed]
-Attempted: [solutions tried]
-Next steps: [what might unblock this]
+uv venv && source .venv/bin/activate    # Initial setup
+uv add <package>                         # Add dependencies
+uv run python src/main.py               # Run scripts
 ```
 
 ## Directory Structure
 
 ```
 project-root/
-├── .devcontainer/         # VS Code Dev Container config
-│   ├── devcontainer.json  # Container settings
-│   └── Dockerfile         # Container image definition
-├── CLAUDE.md              # This file - agent instructions
-├── progress.txt           # Session-to-session progress notes
-├── tasks.json             # Structured task tracking
-├── features.json          # Feature specifications (optional)
-├── pyproject.toml         # uv/Python project config
-├── requirements.txt       # Pinned dependencies
-├── src/
-│   ├── __init__.py
-│   └── ...                # Source code
+├── .claude/
+│   ├── agents/            # Custom subagents
+│   ├── rules/             # Modular research rules (auto-loaded)
+│   ├── hooks/             # Quality gate hooks
+│   └── settings.json      # Shared project settings
+├── .devcontainer/         # Docker config
+├── CLAUDE.md              # This file
+├── research-plan.md       # Research goals and plan (@-imported)
+├── progress.txt           # Optional experiment log
+├── pyproject.toml         # Python project config
+├── src/                   # Source code
 ├── data/
 │   ├── raw/               # Original data
 │   └── processed/         # Processed data
@@ -186,51 +80,18 @@ project-root/
 └── notebooks/             # Exploration notebooks
 ```
 
-## Code Standards
-
-### General
-
-- All scripts must be reproducible (set seeds, document versions)
-- Save intermediate results to disk
-- Include validation checks where appropriate
-- Log statistics and key metrics
-
-### Data Pipeline
-
-- Document data sources and versions
-- Validate schema and expected distributions
-- Log sample counts and key statistics
-
-### Experiments
-
-- Always save outputs with full config
-- Log to both console and file
-- Use deterministic settings where possible
-
-## Verification Checklist
-
-Before marking any task complete:
-
-- [ ] Code runs without errors
-- [ ] Results are logged and committed
-- [ ] progress.txt is updated
-- [ ] tasks.json status is updated
-- [ ] Any new files are added to git
-- [ ] Handoff notes are clear for next session
-
 ## Constraints
 
 - Do not modify test/benchmark code to pass tests
-- Document any deviations from the research plan
-- Keep progress.txt and tasks.json in sync
-- Commit frequently with descriptive messages
+- Document deviations from the research plan
+- Commit frequently with descriptive messages (see `.claude/rules/git-conventions.md`)
+- All code must be reproducible (see `.claude/rules/code-standards.md`)
 
 ## Template Customization
 
-When adapting this template for a specific project:
+When adapting this template:
 
-1. Update the Overview section with project-specific goals
-2. Add project-specific resources (datasets, APIs, libraries)
-3. Define project-specific constraints
-4. Create initial tasks.json with research phases
-5. Document any project-specific tooling requirements
+1. Edit `research-plan.md` with your project goals, resources, and success criteria
+2. Add project-specific rules to `.claude/rules/`
+3. Customize subagents in `.claude/agents/` for your domain
+4. Update `pyproject.toml` with your dependencies
