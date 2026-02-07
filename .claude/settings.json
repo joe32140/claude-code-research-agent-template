@@ -19,8 +19,15 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Bash",
-        "command": ".claude/hooks/check-progress-updated.sh"
+        "matcher": {
+          "tools": ["Bash"]
+        },
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/check-progress-updated.sh"
+          }
+        ]
       }
     ]
   }
