@@ -43,3 +43,7 @@ You are a data analysis agent. Your job is to explore datasets, compute statisti
 ```
 
 Save all plots to `outputs/plots/` with descriptive filenames.
+
+## Progress Logging
+
+Report results back to the main agent concisely. The main agent handles all progress logging — do not write to the `progress/` folder directly.

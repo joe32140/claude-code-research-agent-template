@@ -11,15 +11,27 @@ Use Claude Code's native task system — do NOT create manual `tasks.json` or `f
 - **`TaskList`** to check progress and find next work
 - Focus on ONE task per session; complete or block it before moving on
 
-## Progress & Memory
+## Progress Tracking
 
-Claude Code's auto memory persists context across sessions automatically. Use `progress.txt` only as an optional experiment log for detailed results — not as a primary state tracker.
+The `progress/` folder is the structured record of all research activity. See `.claude/rules/progress-tracking.md` for full details.
 
-After significant experiments, log results to `progress.txt` for human-readable reference:
+- **Session start**: Read `progress/status.md` first for current state, then `research-plan.md` for goals
+- **After experiments**: Create an entry in the current phase folder, update `status.md` and phase `_summary.md`
+- **Success criteria**: Check off `- [x]` items in `research-plan.md` as they're met, with result notes
+- **Phase transitions**: Update status markers in `research-plan.md` and create the next phase folder
+- **Key decisions**: Record in `progress/decisions/` using the decision template
+
+Only the main agent writes to `progress/` — subagents report results back and the main agent logs them.
+
 ```
-## 2025-01-15 - Experiment: Learning rate sweep
-Hypothesis: LR 3e-4 will outperform 1e-3
-Result: Confirmed, 3e-4 achieved 92.1% vs 89.3%
+progress/
+├── status.md              # Current state (read this first)
+├── templates/             # Entry templates
+├── phase-1-data/          # Created per phase as work begins
+│   ├── _summary.md
+│   └── YYYY-MM-DD-*.md
+├── decisions/             # Key decision records
+└── findings/              # Unexpected discoveries
 ```
 
 ## Agent Teams
@@ -68,8 +80,15 @@ project-root/
 │   └── settings.json      # Shared project settings
 ├── .devcontainer/         # Docker config
 ├── CLAUDE.md              # This file
-├── research-plan.md       # Research goals and plan (@-imported)
-├── progress.txt           # Optional experiment log
+├── research-plan.md       # Research goals and plan (@-imported, living document)
+├── progress/
+│   ├── status.md          # Current state (read this first)
+│   ├── templates/         # Entry templates
+│   ├── phase-1-data/      # Created per phase
+│   │   ├── _summary.md
+│   │   └── YYYY-MM-DD-*.md
+│   ├── decisions/         # Key decision records
+│   └── findings/          # Unexpected discoveries
 ├── pyproject.toml         # Python project config
 ├── src/                   # Source code
 ├── data/

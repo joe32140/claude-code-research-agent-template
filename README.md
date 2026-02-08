@@ -69,7 +69,8 @@ claude
 | File | Purpose |
 |------|---------|
 | `CLAUDE.md` | Agent instructions — project constitution |
-| `research-plan.md` | Your research goals and phases (edit this!) |
+| `research-plan.md` | Your research goals and phases — living document updated by the agent |
+| `progress/` | Structured progress tracking (status, experiment logs, decisions) |
 | `.devcontainer/` | Docker configuration for VS Code Dev Containers |
 
 ### `.claude/rules/` — Modular Research Rules
@@ -96,7 +97,8 @@ Specialized agents you can spawn for focused tasks:
 
 | Hook | Trigger | Purpose |
 |------|---------|---------|
-| `check-progress-updated.sh` | After `git commit` | Reminds to log experiment results |
+| `pre-experiment-log.sh` | Before Bash (experiment runs) | Reminds to log experiment plan before running |
+| `check-progress-updated.sh` | After Bash (git commits) | Reminds to update progress tracking after commits |
 
 ## Key Features
 
@@ -122,6 +124,17 @@ Claude spawns a literature-reviewer to search papers while an
 experiment-runner trains the baseline — both working simultaneously.
 ```
 
+### Structured Progress Tracking
+
+The `progress/` folder keeps a structured record of all research activity:
+
+- **`progress/status.md`** — The "front page" the agent reads every session for current state
+- **Phase folders** (`progress/phase-N-name/`) — Experiment entries and summaries per phase
+- **Decision records** (`progress/decisions/`) — Key architecture and approach decisions
+- **Templates** — Consistent format for experiment and decision entries
+
+The agent also updates `research-plan.md` as a living document — checking off success criteria with results and updating phase status markers as work progresses.
+
 ### Auto Memory
 
 Claude Code remembers context across sessions automatically. No need to manually maintain state files — Claude picks up where it left off.
@@ -137,11 +150,13 @@ The `.claude/agents/` directory defines specialized agents with restricted tool 
 ## How It Works
 
 1. Claude reads `CLAUDE.md` on startup, which imports `@research-plan.md` for project context
-2. `.claude/rules/` files are auto-loaded, providing research workflow guidelines
-3. Claude uses native `TaskCreate`/`TaskUpdate`/`TaskList` for progress tracking
-4. Auto memory persists context across sessions
-5. Custom subagents in `.claude/agents/` handle specialized tasks
-6. Hooks in `.claude/hooks/` enforce quality gates
+2. `.claude/rules/` files are auto-loaded, providing research workflow and progress tracking guidelines
+3. Claude reads `progress/status.md` for current state and picks up where it left off
+4. Claude uses native `TaskCreate`/`TaskUpdate`/`TaskList` for task management
+5. After experiments, Claude logs results to `progress/` and updates `research-plan.md`
+6. Auto memory persists context across sessions
+7. Custom subagents in `.claude/agents/` handle specialized tasks
+8. Hooks in `.claude/hooks/` enforce quality gates
 
 ## Customization
 

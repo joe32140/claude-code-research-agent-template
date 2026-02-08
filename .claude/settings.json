@@ -17,11 +17,20 @@
     "deny": []
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-experiment-log.sh"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
-        "matcher": {
-          "tools": ["Bash"]
-        },
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",

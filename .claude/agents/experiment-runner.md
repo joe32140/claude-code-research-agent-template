@@ -44,3 +44,7 @@ Report back with:
 ```
 
 Keep your response concise — the main agent doesn't need verbose training logs.
+
+## Progress Logging
+
+Report results back to the main agent concisely. The main agent handles all progress logging — do not write to the `progress/` folder directly.
